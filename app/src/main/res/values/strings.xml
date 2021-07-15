@@ -1,0 +1,10 @@
+<resources>
+    <string name="app_name">Task</string>
+    <string name="weather_key" translatable="false">0a268956b58faec8fc0503d43d71fc33</string>
+    <string name="empty_data">No data</string>
+    <string name="retry">Retry</string>
+    <string name="no_internet_connection">No internet connection</string>
+    <string name="error">Error</string>
+    <string name="search_">Search here</string>
+    <string name="some_error_happened">some error happened</string>
+</resources>
