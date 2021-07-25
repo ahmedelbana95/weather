@@ -23,10 +23,16 @@ class HomeActivity : BaseActivity<ActivityHomeBinding>() {
     override val isEnableBack: Boolean
         get() = false
 
+    private var mCityValidator: CityValidator? = null
+    var valid: Boolean? = null
+
     private lateinit var searchViewModel: HomeViewModel
     override fun initializeComponents() {
         setToolbarTitle(getString(R.string.app_name))
+        valid = true
         searchViewModel = HomeViewModel(SearchRepo(), resources, this)
+        mCityValidator = CityValidator()
+        et_search!!.addTextChangedListener(mCityValidator)
         setupListeners()
         setUpObservers()
     }
@@ -41,14 +47,23 @@ class HomeActivity : BaseActivity<ActivityHomeBinding>() {
     private fun setupListeners() {
         et_search.setOnEditorActionListener { _, actionId, _ ->
             when (actionId) {
-                EditorInfo.IME_ACTION_SEARCH -> performSearch(et_search.text.toString(),
-                    getString(R.string.weather_key))
+                EditorInfo.IME_ACTION_SEARCH ->
+                    if (mCityValidator!!.isValid) {
+                        performSearch(et_search.text.toString(),
+                            getString(R.string.weather_key))
+                    } else {
+                        SBManager.displayError(this, getString(R.string.invalid_data))
+                    }
             }
             return@setOnEditorActionListener true
         }
         btnRetry.setOnClickListener {
-            performSearch(et_search.text.toString(),
-                getString(R.string.weather_key))
+            if (mCityValidator!!.isValid) {
+                performSearch(et_search.text.toString(),
+                    getString(R.string.weather_key))
+            } else {
+                SBManager.displayError(this, getString(R.string.invalid_data))
+            }
         }
     }
 
@@ -59,7 +74,7 @@ class HomeActivity : BaseActivity<ActivityHomeBinding>() {
     private fun setUpObservers() {
         searchViewModel.searchViewState.observe(this, {
             when (it) {
-                is ViewState.Loading -> Log.e("LOG","LOADING")
+                is ViewState.Loading -> Log.e("LOG", "LOADING")
                 is ViewState.Success -> {
                     if (it.data.weather!!.isEmpty()) {
                         if (mSharedPrefManager.getRecentResults().toList().isNotEmpty()) {
@@ -81,7 +96,15 @@ class HomeActivity : BaseActivity<ActivityHomeBinding>() {
                         getViewDataBinding().rvResults.layoutManager = LinearLayoutManager(this)
                         getViewDataBinding().rvResults.adapter =
                             WeatherAdapter(this, list.toList())
-                        updateRecentResults(it.data.weather!!)
+                        for (i in it.data.weather!!) {
+                            if (!mCityValidator!!.isValid) {
+                                SBManager.displayError(this, getString(R.string.invalid_data))
+                                valid = false
+                            }
+                        }
+                        if (valid!!) {
+                            updateRecentResults(it.data.weather!!)
+                        }
                         btnRetry.visibility = View.GONE
                         getViewDataBinding().clEmptyPayments.visibility = View.GONE
                     }

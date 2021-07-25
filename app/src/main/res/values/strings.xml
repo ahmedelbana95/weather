@@ -7,4 +7,5 @@
     <string name="error">Error</string>
     <string name="search_">Search here</string>
     <string name="some_error_happened">some error happened</string>
+    <string name="invalid_data">Invalid data</string>
 </resources>
